@@ -15,6 +15,7 @@ void usart_dbg_transmit(uint8_t data)
 	UDR0 = data;							// when UDRE0 bit is set put new data to data register
 }
 
+// NOTE: Atmega328 is Little endian, so be aware of this
 void usart_dbg_transmit_hex(uint8_t data)
 {
 	uint8_t tmp;

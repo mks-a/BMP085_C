@@ -11,7 +11,7 @@
 #include "../usart_dbg/usart_dbg.h"
 #endif
 
-int16_t temperature;
+short temperature;
 
 int main(void) 
 {	
@@ -22,10 +22,12 @@ int main(void)
 	{
 		temperature = bmp085_get_temperature();
 		
-/*#ifdef debug
-		usart_dbg_transmit_hex(temperature >> 8);
-		usart_dbg_transmit_hex(temperature);
-#endif*/
+#ifdef debug
+		usart_dbg_transmit_hex((uint8_t)(temperature >> 8));
+		usart_dbg_transmit_hex((uint8_t)(temperature));
+		
+		usart_dbg_transmit_hex(0xFF);
+#endif
 		
 		sleep_enable();
 		sleep_cpu();		

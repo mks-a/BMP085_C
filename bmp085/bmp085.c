@@ -68,7 +68,7 @@ void bmp085_read_callibrations(void)
 
 /* read temperature data from bmp085 sensor 
 returns calculated value of temperature 1 = 0.1 degree */  
-int16_t bmp085_get_temperature(void)
+short bmp085_get_temperature(void)
 {
 	uint16_t sensor_data;
 	uint16_t calibration_addr16;
@@ -157,7 +157,6 @@ static uint8_t bmp085_read_data(uint8_t _reg_addr_to_read, uint16_t _reg_addr_in
 {
 	uint8_t status;
 	uint8_t error = 0;
-	uint16_t tmp_data;
 	
 	// send start condition to sensor
 	twi_send_start_condition();
@@ -214,8 +213,8 @@ static uint8_t bmp085_read_data(uint8_t _reg_addr_to_read, uint16_t _reg_addr_in
 	{
 		twi_send_byte((uint8_t)_reg_addr_internal >> 8);
 		
-		// read value from BMP085_CONV_RESULT_MSB
-		tmp_data = twi_read_data() << 8;
+		// read value from BMP085_CONV_RESULT_MSB (Atmega328 is Little endian)
+		*_buffer = ((uint16_t)twi_read_data()) << 8;
 		
 		status = TWI_GET_STATUS();
 		
@@ -230,23 +229,14 @@ static uint8_t bmp085_read_data(uint8_t _reg_addr_to_read, uint16_t _reg_addr_in
 		// send LSB of conversion result register address
 		twi_send_byte((uint8_t)_reg_addr_internal);
 		
-		// read value from BMP085_CONV_RESULT_LSB
-		tmp_data |= twi_read_data();
+		// read value from BMP085_CONV_RESULT_LSB (Atmega328 is Little endian)
+		*_buffer |= ((uint16_t)twi_read_data()); 
 		
 		status = TWI_GET_STATUS();
 		
 		if(status != TWI_MR_DATA_R_NACK)
 			error = 1;
 	}
-	
-	*_buffer = tmp_data;
-
-#ifdef debug
-	usart_dbg_transmit_hex((uint8_t)tmp_data >> 8);
-	usart_dbg_transmit_hex((uint8_t)tmp_data);
-	
-	usart_dbg_transmit_hex(0xFF);
-#endif
 	
 	twi_send_stop_condition();
 	
@@ -255,63 +245,18 @@ static uint8_t bmp085_read_data(uint8_t _reg_addr_to_read, uint16_t _reg_addr_in
 
 // int from_sensor - temperature value from sensor
 // returns real temperature value
-static int16_t bmp085_calculate_temperature(uint16_t from_sensor)
+static short bmp085_calculate_temperature(unsigned int from_sensor)
 {
-	int32_t x1, x2, b5;
-	int32_t tmp_data;
-	int16_t ret = 0;
+	long x1, x2, b5;
+	uint8_t tmp_uint;
+	//long ret = 0;
+	
+	x1 = (((long)from_sensor - (long)callibrations[5])*(long)callibrations[4]) >> 15;
 
-/*#ifdef debug
-	usart_dbg_transmit_hex((uint8_t)callibrations[4] >> 8);
-	usart_dbg_transmit_hex((uint8_t)callibrations[4]);
-	
-	usart_dbg_transmit_hex(0xFF);
-#endif*/
-	// x1 calculation
-	tmp_data = callibrations[4] >> 15;	
-/*#ifdef debug
-	usart_dbg_transmit_hex((uint8_t)tmp_data >> 24);
-	usart_dbg_transmit_hex((uint8_t)tmp_data >> 16);
-	usart_dbg_transmit_hex((uint8_t)tmp_data >> 8);
-	usart_dbg_transmit_hex((uint8_t)tmp_data);
-	
-	usart_dbg_transmit_hex(0xFF);
-#endif*/
-	x1 = (from_sensor - callibrations[5]) * tmp_data;
-	
-/*#ifdef debug
-	usart_dbg_transmit_hex((uint8_t)x1 >> 24);
-	usart_dbg_transmit_hex((uint8_t)x1 >> 16);
-	usart_dbg_transmit_hex((uint8_t)x1 >> 8);
-	usart_dbg_transmit_hex((uint8_t)x1);
-	
-	usart_dbg_transmit_hex(0xFF);
-#endif*/
-	
-	// x2 calculation
-	tmp_data = callibrations[9] << 11;
-	x2 = tmp_data / (x1 + callibrations[10]);
-	
-/*#ifdef debug
-	usart_dbg_transmit_hex((uint8_t)x2 >> 8);
-	usart_dbg_transmit_hex((uint8_t)x2);
-#endif*/
-	
-	// b5 calculation
+	// callibrations[9] should be signed
+	x2 = ((long)((int)callibrations[9]) << 11)/(x1 + (long)callibrations[10]);
+
 	b5 = x1 + x2;
 	
-/*#ifdef debug
-	usart_dbg_transmit_hex((uint8_t)b5 >> 8);
-	usart_dbg_transmit_hex((uint8_t)b5);
-#endif*/
-	
-	// real value calculation
-	ret = (b5 + 8) >> 4;
-	
-/*#ifdef debug
-	usart_dbg_transmit_hex((uint8_t)ret >> 8);
-	usart_dbg_transmit_hex((uint8_t)ret);
-#endif*/
-	
-	return ret;
+	return (b5 + 8) >> 4;	
 }

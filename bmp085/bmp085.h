@@ -41,8 +41,8 @@ typedef unsigned char byte;
 void bmp085_init(void);
 static void bmp085_init_calibration_addresses(void);
 void bmp085_read_callibrations(void);
-int16_t bmp085_get_temperature(void);
-static int16_t bmp085_calculate_temperature(uint16_t from_sensor);
+short bmp085_get_temperature(void);
+static short bmp085_calculate_temperature(unsigned int from_sensor);
 static uint8_t bmp085_read_data(uint8_t _reg_addr_to_read, uint16_t _reg_addr, uint16_t* _buffer);
 uint8_t bmp085_request_sensor_data(uint8_t _sensor_reg_address);
 
