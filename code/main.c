@@ -12,6 +12,7 @@
 #endif
 
 short temperature;
+long pressure;
 
 int main(void) 
 {	
@@ -21,12 +22,20 @@ int main(void)
 	while (1) 
 	{
 		temperature = bmp085_get_temperature();
+		pressure = bmp085_get_pressure();
 		
 #ifdef debug
-		usart_dbg_transmit_hex((uint8_t)(temperature >> 8));
+		/*usart_dbg_transmit_hex((uint8_t)(temperature >> 8));
 		usart_dbg_transmit_hex((uint8_t)(temperature));
 		
-		usart_dbg_transmit_hex(0xFF);
+		usart_dbg_transmit_hex(0xFF);*/
+		
+		usart_dbg_transmit_hex((uint8_t)(pressure >> 24));
+		usart_dbg_transmit_hex((uint8_t)(pressure >> 16));
+		usart_dbg_transmit_hex((uint8_t)(pressure >> 8));
+		usart_dbg_transmit_hex((uint8_t)(pressure));
+		
+		usart_dbg_transmit_hex(0xFF);		
 #endif
 		
 		sleep_enable();

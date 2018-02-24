@@ -37,6 +37,7 @@ typedef unsigned char byte;
 #define BMP085_TWCR_INIT 0x44			// init value from TWCR register
 
 #define BMP085_TEMP_DELAY_MS 5
+#define BMP085_PRESS_DELAY_STD_MS 8
 
 void bmp085_init(void);
 static void bmp085_init_calibration_addresses(void);
@@ -45,5 +46,7 @@ short bmp085_get_temperature(void);
 static short bmp085_calculate_temperature(unsigned int from_sensor);
 static uint8_t bmp085_read_data(uint8_t _reg_addr_to_read, uint16_t _reg_addr, uint16_t* _buffer);
 uint8_t bmp085_request_sensor_data(uint8_t _sensor_reg_address);
+long bmp085_get_pressure(void);
+static long bmp085_calculate_pressure(unsigned int from_sensor);
 
 #endif

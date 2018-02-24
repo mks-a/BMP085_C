@@ -1,1 +1,1 @@
-Reading bmp085 temperature using arduino on C language.
+Reading bmp085 temperature and pressure using arduino on C language.
